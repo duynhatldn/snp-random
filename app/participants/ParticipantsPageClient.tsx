@@ -2,12 +2,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
-export default function ParticipantsPageClient() {
+export default function ParticipantsPage() {
   const [members, setMembers] = useState<{ name: string; number: string }[]>([{ name: '', number: '' }]);
   const [roomId, setRoomId] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]); // ✅ Quản lý focus
 
   useEffect(() => {
     const id = searchParams.get('roomId') || '';
@@ -17,13 +17,13 @@ export default function ParticipantsPageClient() {
   const handleAddMember = () => {
     setMembers((prev) => [...prev, { name: '', number: '' }]);
     setTimeout(() => {
-      inputRefs.current[members.length]?.focus();
+      inputRefs.current[members.length]?.focus(); // ✅ Focus vào dòng mới
     }, 100);
   };
 
   const handleChange = (index: number, field: 'name' | 'number', value: string) => {
     const updated = [...members];
-    updated[index][field] = field === 'number' ? value.replace(/\D/g, '') : value;
+    updated[index][field] = field === 'number' ? value.replace(/\D/g, '') : value; // ✅ Chỉ cho nhập số
     setMembers(updated);
   };
 
@@ -34,6 +34,7 @@ export default function ParticipantsPageClient() {
   const handleSave = async () => {
     if (!roomId) return alert('Không tìm thấy Room ID');
 
+    // ✅ Validate: Không để trống Tên hoặc Số thứ tự
     const isValid = members.every((m) => m.name.trim() !== '' && m.number.trim() !== '');
     if (!isValid) return alert('❌ Vui lòng nhập đầy đủ TÊN và SỐ THỨ TỰ cho tất cả!');
 
