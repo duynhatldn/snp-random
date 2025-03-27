@@ -1,6 +1,8 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import * as XLSX from 'xlsx';
+
 
 export default function ParticipantsPage() {
   const [members, setMembers] = useState<{ name: string; number: string }[]>([{ name: '', number: '' }]);
@@ -60,6 +62,36 @@ export default function ParticipantsPage() {
     }
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+  
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      const jsonData: any[] = XLSX.utils.sheet_to_json(worksheet);
+  
+      // Giả định cột là "name" và "number"
+      const parsed = jsonData.map((row) => ({
+        name: String(row.name || row.tên || row.Tên || ''),
+        number: String(row.number || row['số thứ tự'] || row.STT || '').replace(/\D/g, ''),
+      })).filter(m => m.name && m.number);
+  
+      if (parsed.length === 0) {
+        alert('❌ Không tìm thấy dữ liệu hợp lệ trong file Excel!');
+        return;
+      }
+  
+      setMembers(parsed);
+    };
+  
+    reader.readAsArrayBuffer(file);
+  };
+  
+
   return (
     <div className="min-h-screen bg-black text-white p-5">
       <h1 className="text-3xl font-bold mb-6">📋 Danh sách người tham gia</h1>
@@ -86,14 +118,17 @@ export default function ParticipantsPage() {
           </button>
         </div>
       ))}
-
-      <div className="flex gap-4 mt-6">
+      <div className="flex gap-4 mt-6 items-center">
         <button onClick={handleAddMember} className="bg-blue-600 hover:bg-blue-700 p-3 rounded">
           ➕ Thêm người
         </button>
         <button onClick={handleSave} className="bg-green-600 hover:bg-green-700 p-3 rounded">
           💾 Lưu danh sách
         </button>
+        <label className="cursor-pointer bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-3 rounded">
+          📁 Tải từ Excel
+          <input type="file" accept=".xlsx,.xls" className="hidden" onChange={handleFileUpload} />
+        </label>
       </div>
     </div>
   );
