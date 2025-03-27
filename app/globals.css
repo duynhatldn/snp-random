@@ -38,7 +38,7 @@ body {
 }
 
 .animate-drop {
-  animation: drop 13s ease-out forwards;
+  animation: drop 2s ease-out forwards;
 }
 
 html, body {
